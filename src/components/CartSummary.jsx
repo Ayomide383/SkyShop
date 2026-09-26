@@ -32,7 +32,10 @@ const CartSummary = ({ cartItems }) => {
             <p>Subtotal ({totalItemCount} items)</p>
 
             <p className="font-bold">
-              ${subtotal.toFixed(2)}
+              ₦{subtotal.toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}
             </p>
           </div>
 
@@ -48,7 +51,10 @@ const CartSummary = ({ cartItems }) => {
             <p>Tax (7%)</p>
 
             <p className="font-bold">
-              ${tax.toFixed(2)}
+             ₦{tax.toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}
             </p>
           </div>
 
@@ -60,7 +66,10 @@ const CartSummary = ({ cartItems }) => {
             </h2>
 
             <h1 className="font-extrabold text-sky-600 text-xl">
-              ${total.toFixed(2)}
+            ₦{total.toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}
             </h1>
           </div>
 

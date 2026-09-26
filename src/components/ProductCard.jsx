@@ -60,7 +60,12 @@ export default function ProductCard({ product, onAddToCart, onToggleWishlist }) 
 
           <div className="mt-3">
             <div className="text-sm font-bold text-blue-600 mb-2">
-              ${product.price ? Number(product.price).toFixed(2) : '0.00'}
+              ₦{product.price
+  ? Number(product.price).toLocaleString('en-NG', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  : '0.00'}
             </div>
           </div>
         </div>

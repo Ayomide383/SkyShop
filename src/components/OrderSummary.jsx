@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import React from 'react';
 import { ChevronDown, ShieldCheck, Truck, Headphones } from 'lucide-react';
 
 export default function OrderSummary({ items, subtotal, shipping, tax, total }) {
@@ -37,7 +37,10 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total }) 
               </p>
             </div>
             <div className="text-xs font-bold text-slate-900">
-              ${(item.price * item.quantity).toFixed(2)}
+              ₦{(Number(item.price) * item.quantity).toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}
             </div>
           </div>
         ))}
@@ -47,7 +50,11 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total }) 
       <div className="bg-slate-50/70 rounded-xl p-4 space-y-2.5 text-xs text-slate-600 mb-6">
         <div className="flex justify-between">
           <span>Subtotal ({totalItemCount} items)</span>
-          <span className="font-semibold text-slate-800">${subtotal.toFixed(2)}</span>
+          <span className="font-semibold text-slate-800">
+            ₦{subtotal.toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}</span>
         </div>
         <div className="flex justify-between">
           <span>Shipping</span>
@@ -57,13 +64,20 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total }) 
         </div>
         <div className="flex justify-between">
           <span>Tax (7%)</span>
-          <span className="font-semibold text-slate-800">${tax.toFixed(2)}</span>
+          <span className="font-semibold text-slate-800">
+            ₦{tax.toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}</span>
         </div>
 
         <div className="pt-3 border-t border-slate-200/60 flex justify-between items-baseline">
           <span className="text-sm font-bold text-slate-900">Total</span>
           <span className="text-xl font-extrabold text-blue-600">
-            ${total.toFixed(2)}
+            ₦{total.toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}
           </span>
         </div>
       </div>

@@ -1,10 +1,13 @@
 import ProductCardH from '../components/ProductCardH.jsx';
 import Categories from '../components/Categories.jsx';
 import Hero from '../components/Hero.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { ArrowRight } from 'lucide-react';
+
 import React from 'react'
 
 const Home = ( {onAddToCart} ) => {
+  
   return (
    <section className="flex flex-col space-y-6">
   <Hero />

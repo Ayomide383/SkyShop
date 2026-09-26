@@ -1,44 +1,120 @@
 import React from 'react';
 import { X, Trash, Star } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.jsx';
+import {
+  updateCartQuantity,
+  deleteCartItem,
+  clearCart
+} from '../services/cartService';
 
 const CartItems = ({ cartItems, setCartItems }) => {
+  const { user } = useAuth();
 
   // REMOVE ONE ITEM
-  const removeItem = (id) => {
-    setCartItems(
-      cartItems.filter(item => item.id !== id)
-    );
-  };
+  const removeItem = async (id) => {
+  if (!user) return;
+
+  const itemToRemove = cartItems.find(item => item.id === id);
+
+  if (!itemToRemove) return;
+
+  // Remove from UI immediately
+  setCartItems(
+    cartItems.filter(item => item.id !== id)
+  );
+
+  try {
+    await deleteCartItem(user.id, id);
+  } catch (error) {
+    // Restore the item if Supabase fails
+    setCartItems(cartItems);
+    alert(error.message);
+  }
+};
 
   // INCREASE QUANTITY
-  const increaseQuantity = (id) => {
+  const increaseQuantity = async (id) => {
+  const item = cartItems.find(item => item.id === id);
+
+  if (!item || !user) return;
+
+  const oldQuantity = item.quantity;
+  const newQuantity = oldQuantity + 1;
+
+  // Update UI immediately
+  setCartItems(
+    cartItems.map(item =>
+      item.id === id
+        ? { ...item, quantity: newQuantity }
+        : item
+    )
+  );
+
+  try {
+    await updateCartQuantity(user.id, id, newQuantity);
+  } catch (error) {
+    // Restore old quantity if Supabase fails
     setCartItems(
       cartItems.map(item =>
         item.id === id
-          ? { ...item, quantity: item.quantity + 1 }
+          ? { ...item, quantity: oldQuantity }
           : item
       )
     );
-  };
+
+    alert(error.message);
+  }
+};
 
   // DECREASE QUANTITY
-  const decreaseQuantity = (id) => {
+  const decreaseQuantity = async (id) => {
+  const item = cartItems.find(item => item.id === id);
+
+  if (!item || !user) return;
+
+  const oldQuantity = item.quantity;
+  const newQuantity = Math.max(1, oldQuantity - 1);
+
+  // Already at 1
+  if (newQuantity === oldQuantity) return;
+
+  // Update UI immediately
+  setCartItems(
+    cartItems.map(item =>
+      item.id === id
+        ? { ...item, quantity: newQuantity }
+        : item
+    )
+  );
+
+  try {
+    await updateCartQuantity(user.id, id, newQuantity);
+  } catch (error) {
+    // Restore old quantity if Supabase fails
     setCartItems(
       cartItems.map(item =>
         item.id === id
-          ? {
-              ...item,
-              quantity: Math.max(1, item.quantity - 1)
-            }
+          ? { ...item, quantity: oldQuantity }
           : item
       )
     );
-  };
+
+    alert(error.message);
+  }
+};
 
   // CLEAR CART
-  const clearCart = () => {
+  const handleClearCart = async () => {
+  if (!user) return;
+
+  try {
+    await clearCart(user.id);
+
     setCartItems([]);
-  };
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
   return (
     <div className="px-6 lg:border-2 border-gray-200 lg:shadow lg:py-4 rounded mb-4">
@@ -52,7 +128,7 @@ const CartItems = ({ cartItems, setCartItems }) => {
 
         <button
           type="button"
-          onClick={clearCart}
+          onClick={handleClearCart}
           className="text-red-400 font-medium text-[10px] flex items-center gap-1"
         >
           <Trash size={10} />
@@ -62,10 +138,9 @@ const CartItems = ({ cartItems, setCartItems }) => {
       </div>
 
 
-      {/* ITEMS */}
       <div className="flex flex-col">
 
-        {cartItems.length === 0 ? (
+  {cartItems.length === 0 ? (
 
           <div className="py-10 text-center">
             <p className="text-slate-400 text-sm">
@@ -131,7 +206,10 @@ const CartItems = ({ cartItems, setCartItems }) => {
 
 
                   <h1 className="font-bold text-blue-600">
-                    ${Number(ci.price).toFixed(2)}
+                    ₦{Number(ci.price).toLocaleString('en-NG', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}
                   </h1>
 
                 </div>

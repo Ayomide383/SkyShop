@@ -28,11 +28,23 @@ export default function ProductInfo( {product} ) {
       </div>
 
       {/* Pricing */}
-      <div className="flex items-center space-x-3">
-        <span className="text-3xl font-bold text-blue-600">${product?.price}</span>
-        <span className="text-sm text-gray-400 line-through">$89.99</span>
-        <span className="rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">33% OFF</span>
-      </div>
+      {/* Pricing */}
+<div className="flex items-center space-x-3">
+  <span className="text-3xl font-bold text-blue-600">
+    ₦{product?.price
+      ? Number(product.price).toLocaleString('en-NG', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      : '0.00'}
+  </span>
+
+  <span className="text-sm text-gray-400 line-through">$89.99</span>
+
+  <span className="rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">
+    33% OFF
+  </span>
+</div>
 
       {/*   <p className="text-sm text-gray-600 leading-relaxed">
         Enjoy high-quality sound, deep bass and all-day comfort with our wireless headphones. Perfect for music, gaming, work and travel. Features advanced noise cancellation and long battery life.

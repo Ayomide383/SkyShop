@@ -1,5 +1,6 @@
-
-import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
+import { supabase } from '../lib/supabase';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   UserRound,
   Mail,
@@ -21,10 +22,16 @@ const initialProfile = {
 };
 
 export default function ProfilePage() {
+  const { user, logout } = useAuth();
   const [profile, setProfile] = useState(initialProfile);
   const [formData, setFormData] = useState(initialProfile);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarSuccess, setAvatarSuccess] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,17 +50,151 @@ export default function ProfilePage() {
     setSaved(false);
   };
 
+  const handleAvatarUpload = async (e) => {
+  const file = e.target.files?.[0];
+
+  if (!file || !user) return;
+
+  setAvatarLoading(true);
+  setError('');
+
+  const oldAvatarUrl = profile.avatar_url;
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.refreshSession();
+
+  if (sessionError || !session) {
+    setError('Your session has expired. Please log in again.');
+    setAvatarLoading(false);
+    return;
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file);
+
+  if (uploadError) {
+    console.error('Avatar upload error:', uploadError);
+    setError(uploadError.message);
+    setAvatarLoading(false);
+    return;
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      avatar_url: publicUrl,
+    })
+    .eq('id', user.id);
+
+  if (profileError) {
+    console.error('Profile avatar error:', profileError);
+    setError('Image uploaded, but your profile could not be updated.');
+    setAvatarLoading(false);
+    return;
+  }
+
+  setProfile((prev) => ({
+  ...prev,
+  avatar_url: publicUrl,
+}));
+
+setAvatarSuccess(true);
+
+if (oldAvatarUrl) {
+  const oldPath = oldAvatarUrl.split('/avatars/')[1];
+
+  if (oldPath) {
+    const { error: deleteError } = await supabase.storage
+      .from('avatars')
+      .remove([oldPath]);
+
+    if (deleteError) {
+      console.error('Old avatar delete error:', deleteError);
+      setError(`Old avatar could not be deleted: ${deleteError.message}`);
+    }
+  }
+}
+
+setAvatarLoading(false);
+};
+
   const handleCancel = () => {
     setFormData(profile);
     setIsEditing(false);
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    setProfile(formData);
-    setIsEditing(false);
-    setSaved(true);
+  const handleSave = async (e) => {
+  e.preventDefault();
+
+  if (!user) return;
+
+  setError('');
+  setSaved(false);
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      full_name: formData.name,
+      phone: formData.phone,
+    })
+    .eq('id', user.id);
+
+  if (error) {
+    console.error('Save profile error:', error);
+    setError('Failed to save your profile. Please try again.');
+    return;
+  }
+
+  setProfile(formData);
+  setIsEditing(false);
+  setSaved(true);
+};
+  
+  useEffect(() => {
+  const loadProfile = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('full_name, phone, avatar_url')
+      .eq('id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Profile error:', error);
+      setLoading(false);
+      return;
+    }
+
+    const loadedProfile = {
+  name: data.full_name || '',
+  email: user.email || '',
+  phone: data.phone || '',
+  avatar_url: data.avatar_url || '',
+};
+
+    setProfile(loadedProfile);
+    setFormData(loadedProfile);
+    setLoading(false);
   };
+
+  loadProfile();
+}, [user]);
 
   const displayValue = (value, fallback) => value.trim() || fallback;
 
@@ -86,10 +227,38 @@ export default function ProfilePage() {
         <section className="mb-6 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
           <div className="h-2 bg-gradient-to-r from-sky-500 to-blue-600" />
 
+          <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+
           <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-7">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-sky-100 text-2xl font-extrabold text-sky-700 ring-4 ring-sky-50">
-              {getInitial()}
-            </div>
+            <button
+                  type="button"
+                  className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sky-100 text-2xl font-extrabold text-sky-700 ring-4 ring-sky-50"
+                  onClick={() => {
+  if (!avatarLoading) {
+    fileInputRef.current?.click();
+  }
+}}
+                >
+                  {avatarLoading ? (
+  <span className="text-sm font-semibold">
+    ...
+  </span>
+) : profile.avatar_url ? (
+  <img
+    src={profile.avatar_url}
+    alt="Profile"
+    className="h-full w-full rounded-full object-cover"
+  />
+) : (
+  getInitial()
+)}
+            </button>
 
             <div className="min-w-0 flex-1">
               <p className="text-sm text-slate-500">Hello,</p>
@@ -169,6 +338,7 @@ export default function ProfilePage() {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
+                  readOnly
                   placeholder="Enter your email address"
                   className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
                 />
@@ -258,6 +428,11 @@ export default function ProfilePage() {
                   Profile changes saved.
                 </div>
               )}
+              {error && (
+              <p className="mt-2 text-sm text-red-500">
+                {error}
+              </p>
+            )}
             </>
           )}
         </section>
@@ -307,7 +482,7 @@ export default function ProfilePage() {
 
 
             <Link
-              to="*"
+              to="/orders"
               className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
@@ -324,6 +499,20 @@ export default function ProfilePage() {
               <ArrowRight className="h-5 w-5 text-slate-400 transition group-hover:translate-x-1 group-hover:text-sky-600" />
             </Link>
           </div>
+          {user && (
+  <button
+    onClick={async () => {
+      const { error } = await logout();
+
+      if (error) {
+        console.error(error);
+      }
+    }}
+    className="text-sm text-red-500"
+  >
+    Logout
+  </button>
+)}
         </section>
 
         {/*}    {/* SMALL FOOTNOTE 

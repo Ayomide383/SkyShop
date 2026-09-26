@@ -8,13 +8,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getProducts } from '../data/Product.js';
 
-const sampleImages = [
+{/* const sampleImages = [
   'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
   'https://images.unsplash.com/photo-1583394838336-acd977736f90',
   'https://images.unsplash.com/photo-1484704849700-f032a568e944',
   'https://images.unsplash.com/photo-1546435770-a3e426bf472b',
 ];
-
+*/}
 
 export default function ProductPage({ onAddToCart }) {
   const { id } = useParams();
@@ -70,7 +70,10 @@ export default function ProductPage({ onAddToCart }) {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           
           <div className="lg:col-span-5">
-            <ImageGallery images={product.images} />
+            <ImageGallery 
+  images={product.images}
+  image={product.image}
+ />
           </div>
 
           

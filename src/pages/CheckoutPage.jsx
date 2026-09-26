@@ -2,9 +2,15 @@ import ShippingForm from '../components/ShippingForm.jsx';
 import PaymentMethod from '../components/PaymentsMethod.jsx';
 import HeroBannerCheckout from '../components/HeroBannerChechout.jsx';
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
+import { createOrder, createOrderItems } from '../services/orderService';
+import { useNavigate } from 'react-router-dom';
+import { clearCart } from '../services/cartService';
 import OrderSummary from '../components/OrderSummary';
 
 export default function ChechoutPage({ cartItems, setCartItems }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   
 
@@ -46,10 +52,34 @@ const total = subtotal + shipping + tax;
     setCardDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert('Order placed successfully!');
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!user) {
+    alert('Please log in before placing an order.');
+    return;
+  }
+
+  try {
+    const order = await createOrder(user.id, {
+      ...formData,
+      subtotal,
+      shipping,
+      tax,
+      total,
+      paymentMethod,
+    });
+
+    await createOrderItems(order.id, cartItems);
+
+    await clearCart(user.id);
+
+    navigate(`/order-success/${order.id}`);
+  } catch (error) {
+    console.error('Checkout error:', error);
+    alert(error.message);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 antialiased pb-16">

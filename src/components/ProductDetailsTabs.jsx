@@ -31,7 +31,7 @@ export default function ProductDetailsTabs( {product} ) {
             activeTab === 'reviews' ? 'border-b-2 border-blue-600 text-blue-600 font-bold' : 'text-gray-500'
           }`}
         >
-          Reviews (128)
+          Reviews ({product.reviews})
         </button>
       </div>
 

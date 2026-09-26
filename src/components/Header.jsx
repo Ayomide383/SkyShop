@@ -31,6 +31,7 @@ export default function Header({
   }
 };
 
+  
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm transition-all duration-200">
       {}

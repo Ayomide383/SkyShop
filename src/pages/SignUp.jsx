@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
 const [formData, setFormData] = useState({
   fullName: '',
@@ -211,16 +212,21 @@ const [loading, setLoading] = useState(false);
                       password: e.target.value,
                     })
                   }
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Create a password"
                   className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-10 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
                 />
 
                 <button
                   type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                 >
-                  <Eye size={19} />
+                  {showPassword ? (
+                    <EyeOff size={19} />
+                  ) : (
+                    <Eye size={19} />
+                  )}
                 </button>
               </div>
             </div>
@@ -245,17 +251,17 @@ const [loading, setLoading] = useState(false);
                       confirmPassword: e.target.value,
                     })
                   }
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
                   className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-10 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
                 />
 
-                <button
+                {/*} <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                 >
                   <Eye size={19} />
-                </button>
+                </button>*/}
               </div>
             </div>
 

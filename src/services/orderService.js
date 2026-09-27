@@ -118,3 +118,59 @@ export async function getOrderItems(orderId) {
 
   return data;
 }
+
+export async function getAllOrders() {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      id,
+      user_id,
+      full_name,
+      email,
+      phone,
+      address,
+      city,
+      state,
+      zip_code,
+      subtotal,
+      shipping,
+      tax,
+      total,
+      payment_method,
+      payment_status,
+      order_status,
+      created_at,
+      order_items (
+        id,
+        product_id,
+        product_name,
+        unit_price,
+        quantity,
+        subtotal
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Admin Orders Error: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function updateOrderStatus(orderId, status) {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({
+      order_status: status,
+    })
+    .eq('id', orderId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Update Order Status Error: ${error.message}`);
+  }
+
+  return data;
+}

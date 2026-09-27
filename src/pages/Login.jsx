@@ -20,7 +20,7 @@ const [loading, setLoading] = useState(false);
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
@@ -43,19 +43,34 @@ const [loading, setLoading] = useState(false);
 
   setLoading(true);
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  setLoading(false);
+  const { data, error } =
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
   if (error) {
+    setLoading(false);
     setError(error.message);
     return;
   }
 
-  navigate('/');
+  const { data: isAdmin, error: adminError } =
+    await supabase.rpc('is_admin');
+
+  setLoading(false);
+
+  if (adminError) {
+    console.error('Admin check error:', adminError);
+    navigate('/');
+    return;
+  }
+
+  if (isAdmin) {
+    navigate('/admin');
+  } else {
+    navigate('/');
+  }
 };
 
   return (

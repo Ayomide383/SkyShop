@@ -1,3 +1,7 @@
+import { supabase } from './lib/supabase';
+
+import AdminLayout from './components/AdminLayout.jsx';
+import AdminProducts from './pages/AdminProducts.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
@@ -18,17 +22,55 @@ import { useAuth } from './context/AuthContext.jsx';
 import OrderSuccess from './pages/OrderSuccess.jsx';
 import Orders from './pages/Orders.jsx';
 import OrderDetails from './pages/OrderDetails.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminOrders from './pages/AdminOrders.jsx';
+import AdminAddProduct from './pages/AdminAddProduct.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import AdminEditProduct from './pages/AdminEditProduct.jsx';
+import AdminCustomers from './pages/AdminCustomers';
+import AuthCallback from './pages/AuthCallback.jsx';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 
 function App() {
-  
+  const location = useLocation();
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+
+  const isAdminPage = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    const checkAdminAndRedirect = async () => {
+      if (!user) return;
+
+      if (
+        location.pathname.startsWith('/admin') ||
+        location.pathname === '/auth/callback'
+      ) {
+        return;
+      }
+
+      const { data: isAdmin, error } =
+        await supabase.rpc('is_admin');
+
+      if (error) {
+        console.error('Admin redirect check error:', error);
+        return;
+      }
+
+      console.log('Is current user admin:', isAdmin);
+
+      if (isAdmin === true) {
+        navigate('/admin', { replace: true });
+      }
+    };
+
+    checkAdminAndRedirect();
+  }, [user, location.pathname, navigate]);
 
   useEffect(() => {
   const loadCart = async () => {
@@ -112,11 +154,13 @@ function App() {
   return (
     <>
 
-      <Header
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        cartItems={cartItems}
-/>
+      {!isAdminPage && (
+  <Header
+    searchQuery={searchQuery}
+    setSearchQuery={setSearchQuery}
+    cartItems={cartItems}
+  />
+)}
 
       <Routes>
 
@@ -129,6 +173,13 @@ function App() {
   path="/login"
   element={<Login />}
 />
+
+        <Route
+  path="/auth/callback"
+  element={<AuthCallback />}
+/>
+
+        
         <Route
   path="/forgot-password"
   element={<ForgotPassword />}
@@ -168,6 +219,20 @@ function App() {
 />
 
       <Route element={<ProtectedRoute />}>
+
+        
+        <Route element={<AdminRoute />}>
+  <Route element={<AdminLayout />}>
+    <Route path="/admin" element={<AdminDashboard />} />
+    <Route path="/admin/orders" element={<AdminOrders />} />
+    <Route path="/admin/customers" element={<AdminCustomers />} />
+    <Route path="/admin/products" element={<AdminProducts />} />
+    <Route path="/admin/products/add" element={<AdminAddProduct />} />
+    <Route path="/admin/products/edit/:id" element={<AdminEditProduct />} />
+  </Route>
+</Route>
+
+        
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
 
         <Route
@@ -200,7 +265,7 @@ function App() {
       </Route>
       </Routes>
 
-      <Footer />
+      {!isAdminPage && <Footer />}
 
     </>
   );

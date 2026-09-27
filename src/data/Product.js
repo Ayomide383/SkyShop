@@ -10,11 +10,8 @@ export async function getProducts() {
         image_url,
         is_primary
       )
-    `);
-
-  if (error) {
-    throw new Error(`Supabase Error: ${error.message}`);
-  }
+    `)
+    .eq('is_active', true);
 
   return data.map((product) => ({
     id: product.id,

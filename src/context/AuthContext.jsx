@@ -16,18 +16,62 @@ export function AuthProvider({ children }) {
       } = await supabase.auth.getSession();
 
       if (mounted) {
-        setUser(session?.user ?? null);
-        setLoading(false);
+        if (session?.user) {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('is_active')
+    .eq('id', session.user.id)
+    .single();
+
+  if (error) {
+    console.error('Profile status error:', error);
+    setUser(null);
+  } else if (profile.is_active === false) {
+    await supabase.auth.signOut();
+    setUser(null);
+  } else {
+    setUser(session.user);
+  }
+} else {
+  setUser(null);
+}
+
+setLoading(false);
       }
     };
 
     getSession();
 
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+  data: { subscription },
+} = supabase.auth.onAuthStateChange(
+  async (_event, session) => {
+    if (!session?.user) {
+      setUser(null);
+      return;
+    }
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('is_active')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error) {
+      console.error('Profile status error:', error);
+      setUser(null);
+      return;
+    }
+
+    if (profile.is_active === false) {
+      await supabase.auth.signOut();
+      setUser(null);
+      return;
+    }
+
+    setUser(session.user);
+  }
+);
 
     return () => {
       mounted = false;

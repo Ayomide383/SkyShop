@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Trash, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+
 import {
   updateCartQuantity,
   deleteCartItem,
@@ -12,109 +13,142 @@ const CartItems = ({ cartItems, setCartItems }) => {
 
   // REMOVE ONE ITEM
   const removeItem = async (id) => {
-  if (!user) return;
+    if (!user) return;
 
-  const itemToRemove = cartItems.find(item => item.id === id);
+    const itemToRemove = cartItems.find(item => item.id === id);
 
-  if (!itemToRemove) return;
+    if (!itemToRemove) return;
 
-  // Remove from UI immediately
-  setCartItems(
-    cartItems.filter(item => item.id !== id)
-  );
+    // Remove from UI immediately
+    setCartItems(
+      cartItems.filter(item => item.id !== id)
+    );
 
-  try {
-    await deleteCartItem(user.id, id);
-  } catch (error) {
-    // Restore the item if Supabase fails
-    setCartItems(cartItems);
-    alert(error.message);
-  }
-};
+    try {
+      await deleteCartItem(user.id, id);
+    } catch (error) {
+      // Restore item if Supabase fails
+      setCartItems(cartItems);
+      alert(error.message);
+    }
+  };
 
   // INCREASE QUANTITY
   const increaseQuantity = async (id) => {
-  const item = cartItems.find(item => item.id === id);
+    const item = cartItems.find(item => item.id === id);
 
-  if (!item || !user) return;
+    if (!item || !user) return;
 
-  const oldQuantity = item.quantity;
-  const newQuantity = oldQuantity + 1;
+    // Stop if already at stock limit
+    if (item.quantity >= item.stock) {
+      alert(
+        `Only ${item.stock} item${
+          item.stock === 1 ? '' : 's'
+        } available in stock.`
+      );
+      return;
+    }
 
-  // Update UI immediately
-  setCartItems(
-    cartItems.map(item =>
-      item.id === id
-        ? { ...item, quantity: newQuantity }
-        : item
-    )
-  );
+    const oldQuantity = item.quantity;
+    const newQuantity = oldQuantity + 1;
 
-  try {
-    await updateCartQuantity(user.id, id, newQuantity);
-  } catch (error) {
-    // Restore old quantity if Supabase fails
+    // Update UI immediately
     setCartItems(
       cartItems.map(item =>
         item.id === id
-          ? { ...item, quantity: oldQuantity }
+          ? {
+              ...item,
+              quantity: newQuantity
+            }
           : item
       )
     );
 
-    alert(error.message);
-  }
-};
+    try {
+      await updateCartQuantity(
+        user.id,
+        id,
+        newQuantity
+      );
+    } catch (error) {
+      // Restore old quantity if Supabase fails
+      setCartItems(
+        cartItems.map(item =>
+          item.id === id
+            ? {
+                ...item,
+                quantity: oldQuantity
+              }
+            : item
+        )
+      );
+
+      alert(error.message);
+    }
+  };
 
   // DECREASE QUANTITY
   const decreaseQuantity = async (id) => {
-  const item = cartItems.find(item => item.id === id);
+    const item = cartItems.find(item => item.id === id);
 
-  if (!item || !user) return;
+    if (!item || !user) return;
 
-  const oldQuantity = item.quantity;
-  const newQuantity = Math.max(1, oldQuantity - 1);
+    const oldQuantity = item.quantity;
+    const newQuantity = Math.max(
+      1,
+      oldQuantity - 1
+    );
 
-  // Already at 1
-  if (newQuantity === oldQuantity) return;
+    // Already at 1
+    if (newQuantity === oldQuantity) return;
 
-  // Update UI immediately
-  setCartItems(
-    cartItems.map(item =>
-      item.id === id
-        ? { ...item, quantity: newQuantity }
-        : item
-    )
-  );
-
-  try {
-    await updateCartQuantity(user.id, id, newQuantity);
-  } catch (error) {
-    // Restore old quantity if Supabase fails
+    // Update UI immediately
     setCartItems(
       cartItems.map(item =>
         item.id === id
-          ? { ...item, quantity: oldQuantity }
+          ? {
+              ...item,
+              quantity: newQuantity
+            }
           : item
       )
     );
 
-    alert(error.message);
-  }
-};
+    try {
+      await updateCartQuantity(
+        user.id,
+        id,
+        newQuantity
+      );
+    } catch (error) {
+      // Restore old quantity if Supabase fails
+      setCartItems(
+        cartItems.map(item =>
+          item.id === id
+            ? {
+                ...item,
+                quantity: oldQuantity
+              }
+            : item
+        )
+      );
+
+      alert(error.message);
+    }
+  };
 
   // CLEAR CART
   const handleClearCart = async () => {
-  if (!user) return;
+    if (!user) return;
 
-  try {
-    await clearCart(user.id);
+    try {
+      await clearCart(user.id);
 
-    setCartItems([]);
-  } catch (error) {
-    alert(error.message);
-  }
-};
+      setCartItems([]);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="px-6 lg:border-2 border-gray-200 lg:shadow lg:py-4 rounded mb-4">
@@ -137,10 +171,10 @@ const CartItems = ({ cartItems, setCartItems }) => {
 
       </div>
 
-
+      {/* CART CONTENT */}
       <div className="flex flex-col">
 
-  {cartItems.length === 0 ? (
+        {cartItems.length === 0 ? (
 
           <div className="py-10 text-center">
             <p className="text-slate-400 text-sm">
@@ -160,13 +194,18 @@ const CartItems = ({ cartItems, setCartItems }) => {
               {/* PRODUCT INFO */}
               <div className="flex space-x-4 items-center">
 
+                {/* IMAGE */}
                 <div className="bg-slate-100 w-24 h-24 rounded-lg flex items-center justify-center shrink-0">
 
-                  <img className="" src={ci.image} alt="" />
+                  <img
+                    className=""
+                    src={ci.image}
+                    alt={ci.title}
+                  />
 
                 </div>
 
-
+                {/* DETAILS */}
                 <div className="flex flex-col py-6">
 
                   <h2 className="font-bold">
@@ -176,7 +215,6 @@ const CartItems = ({ cartItems, setCartItems }) => {
                   <p className="font-extralight text-[10px]">
                     {ci.category}
                   </p>
-
 
                   {/* RATING */}
                   <div className="flex items-center text-[10px]">
@@ -204,48 +242,64 @@ const CartItems = ({ cartItems, setCartItems }) => {
 
                   </div>
 
-
+                  {/* PRICE */}
                   <h1 className="font-bold text-blue-600">
-                    ₦{Number(ci.price).toLocaleString('en-NG', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})}
+                    ₦
+                    {Number(ci.price).toLocaleString(
+                      'en-NG',
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
                   </h1>
+
+                  {/* STOCK */}
+                  <p
+                    className={`mt-1 text-[10px] font-medium ${
+                      ci.quantity >= ci.stock
+                        ? 'text-orange-600'
+                        : 'text-green-600'
+                    }`}
+                  >
+                    {ci.quantity >= ci.stock
+                      ? `Maximum available: ${ci.stock}`
+                      : `${ci.stock} available in stock`}
+                  </p>
 
                 </div>
 
               </div>
 
-
               {/* QUANTITY + REMOVE */}
               <div className="flex items-center space-x-3">
 
+                {/* QUANTITY */}
                 <div className="flex items-center rounded-lg border bg-white">
 
                   <button
                     type="button"
                     onClick={() => decreaseQuantity(ci.id)}
-                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                    disabled={ci.quantity <= 1}
+                    className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     -
                   </button>
-
 
                   <span className="px-4 py-1 text-sm font-medium">
                     {ci.quantity}
                   </span>
 
-
                   <button
                     type="button"
                     onClick={() => increaseQuantity(ci.id)}
-                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                    disabled={ci.quantity >= ci.stock}
+                    className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     +
                   </button>
 
                 </div>
-
 
                 {/* REMOVE */}
                 <button

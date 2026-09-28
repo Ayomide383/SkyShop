@@ -30,6 +30,7 @@ export async function getProducts() {
         .map((img) => img.image_url) || [],
     description: product.description,
     brand: product.brand,
+    stock: product.stock,
   }));
 }
 

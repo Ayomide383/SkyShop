@@ -14,7 +14,8 @@ export async function getCartItems(userId) {
         image_url,
         category,
         brand,
-        rating
+        rating,
+        stock
       )
     `)
     .eq('user_id', userId);
@@ -27,6 +28,26 @@ export async function getCartItems(userId) {
 }
 
 export async function addToCart(userId, productId) {
+  // Check product stock
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('stock, is_active')
+    .eq('id', productId)
+    .single();
+
+  if (productError) {
+    throw new Error(`Cart Error: ${productError.message}`);
+  }
+
+  if (!product.is_active) {
+    throw new Error('This product is no longer available.');
+  }
+
+  if (product.stock <= 0) {
+    throw new Error('This product is out of stock.');
+  }
+
+  // Check existing cart item
   const { data: existingItem, error: fetchError } = await supabase
     .from('cart_items')
     .select('id, quantity')
@@ -39,10 +60,20 @@ export async function addToCart(userId, productId) {
   }
 
   if (existingItem) {
+    const newQuantity = existingItem.quantity + 1;
+
+    if (newQuantity > product.stock) {
+      throw new Error(
+        `Only ${product.stock} item${
+          product.stock === 1 ? '' : 's'
+        } available in stock.`
+      );
+    }
+
     const { data, error } = await supabase
       .from('cart_items')
       .update({
-        quantity: existingItem.quantity + 1,
+        quantity: newQuantity,
       })
       .eq('id', existingItem.id)
       .select()
@@ -55,6 +86,7 @@ export async function addToCart(userId, productId) {
     return data;
   }
 
+  // Add new cart item
   const { data, error } = await supabase
     .from('cart_items')
     .insert({
@@ -73,6 +105,33 @@ export async function addToCart(userId, productId) {
 }
 
 export async function updateCartQuantity(userId, productId, quantity) {
+  // Get current product stock
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('stock, is_active')
+    .eq('id', productId)
+    .single();
+
+  if (productError) {
+    throw new Error(`Cart Error: ${productError.message}`);
+  }
+
+  if (!product.is_active) {
+    throw new Error('This product is no longer available.');
+  }
+
+  if (quantity < 1) {
+    throw new Error('Quantity must be at least 1.');
+  }
+
+  if (quantity > product.stock) {
+    throw new Error(
+      `Only ${product.stock} item${
+        product.stock === 1 ? '' : 's'
+      } available in stock.`
+    );
+  }
+
   const { data, error } = await supabase
     .from('cart_items')
     .update({

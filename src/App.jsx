@@ -80,15 +80,16 @@ function App() {
       const items = await getCartItems(user.id);
 
       const formattedItems = items.map((item) => ({
-        id: item.products.id,
-        title: item.products.name,
-        price: item.products.price,
-        image: item.products.image_url,
-        category: item.products.category,
-        brand: item.products.brand,
-        rating: item.products.rating,
-        quantity: item.quantity,
-      }));
+  id: item.products.id,
+  title: item.products.name,
+  price: item.products.price,
+  image: item.products.image_url,
+  category: item.products.category,
+  brand: item.products.brand,
+  rating: item.products.rating,
+  quantity: item.quantity,
+  stock: item.products.stock,
+}));
 
       setCartItems(formattedItems);
     } catch (error) {

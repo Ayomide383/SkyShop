@@ -15,7 +15,12 @@ export async function getCartItems(userId) {
         category,
         brand,
         rating,
-        stock
+        stock,
+        product_images (
+          id,
+          image_url,
+          is_primary
+        )
       )
     `)
     .eq('user_id', userId);
@@ -27,27 +32,40 @@ export async function getCartItems(userId) {
   return data;
 }
 
-export async function addToCart(userId, productId) {
-  // Check product stock
+
+export async function addToCart(userId, productId, quantity = 1) {
+  /*
+    First, get the CURRENT stock directly from Supabase.
+    This prevents the frontend from adding products that
+    are already out of stock.
+  */
   const { data: product, error: productError } = await supabase
     .from('products')
-    .select('stock, is_active')
+    .select('id, stock, is_active')
     .eq('id', productId)
     .single();
 
   if (productError) {
-    throw new Error(`Cart Error: ${productError.message}`);
+    throw new Error(`Product Error: ${productError.message}`);
   }
 
+  /*
+    Make sure the product is still available.
+  */
   if (!product.is_active) {
     throw new Error('This product is no longer available.');
   }
 
-  if (product.stock <= 0) {
+  /*
+    Product has completely sold out.
+  */
+  if (Number(product.stock) <= 0) {
     throw new Error('This product is out of stock.');
   }
 
-  // Check existing cart item
+  /*
+    Get the quantity already inside the user's cart.
+  */
   const { data: existingItem, error: fetchError } = await supabase
     .from('cart_items')
     .select('id, quantity')
@@ -59,17 +77,38 @@ export async function addToCart(userId, productId) {
     throw new Error(`Cart Error: ${fetchError.message}`);
   }
 
+  const currentQuantity = existingItem
+    ? Number(existingItem.quantity)
+    : 0;
+
+  const requestedQuantity = Number(quantity);
+
+  /*
+    Make sure the requested quantity is valid.
+  */
+  if (!Number.isInteger(requestedQuantity) || requestedQuantity < 1) {
+    throw new Error('Invalid cart quantity.');
+  }
+
+  const newQuantity = currentQuantity + requestedQuantity;
+
+  /*
+    Do not allow the cart quantity to exceed
+    the product's current stock.
+  */
+  if (newQuantity > Number(product.stock)) {
+    throw new Error(
+      `Only ${product.stock} item${
+        Number(product.stock) === 1 ? '' : 's'
+      } available in stock.`
+    );
+  }
+
+  /*
+    Product already exists in cart.
+    Update its quantity.
+  */
   if (existingItem) {
-    const newQuantity = existingItem.quantity + 1;
-
-    if (newQuantity > product.stock) {
-      throw new Error(
-        `Only ${product.stock} item${
-          product.stock === 1 ? '' : 's'
-        } available in stock.`
-      );
-    }
-
     const { data, error } = await supabase
       .from('cart_items')
       .update({
@@ -86,13 +125,16 @@ export async function addToCart(userId, productId) {
     return data;
   }
 
-  // Add new cart item
+  /*
+    Product isn't in the cart yet.
+    Create a new cart item.
+  */
   const { data, error } = await supabase
     .from('cart_items')
     .insert({
       user_id: userId,
       product_id: productId,
-      quantity: 1,
+      quantity: requestedQuantity,
     })
     .select()
     .single();
@@ -104,8 +146,16 @@ export async function addToCart(userId, productId) {
   return data;
 }
 
-export async function updateCartQuantity(userId, productId, quantity) {
-  // Get current product stock
+
+export async function updateCartQuantity(
+  userId,
+  productId,
+  quantity
+) {
+  /*
+    Get the current product stock before changing
+    the cart quantity.
+  */
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('stock, is_active')
@@ -113,23 +163,27 @@ export async function updateCartQuantity(userId, productId, quantity) {
     .single();
 
   if (productError) {
-    throw new Error(`Cart Error: ${productError.message}`);
+    throw new Error(`Product Error: ${productError.message}`);
   }
 
   if (!product.is_active) {
     throw new Error('This product is no longer available.');
   }
 
-  if (quantity < 1) {
-    throw new Error('Quantity must be at least 1.');
+  if (Number(product.stock) <= 0) {
+    throw new Error('This product is out of stock.');
   }
 
-  if (quantity > product.stock) {
+  if (Number(quantity) > Number(product.stock)) {
     throw new Error(
       `Only ${product.stock} item${
-        product.stock === 1 ? '' : 's'
+        Number(product.stock) === 1 ? '' : 's'
       } available in stock.`
     );
+  }
+
+  if (!Number.isInteger(Number(quantity)) || Number(quantity) < 1) {
+    throw new Error('Invalid cart quantity.');
   }
 
   const { data, error } = await supabase
@@ -149,6 +203,7 @@ export async function updateCartQuantity(userId, productId, quantity) {
   return data;
 }
 
+
 export async function deleteCartItem(userId, productId) {
   const { error } = await supabase
     .from('cart_items')
@@ -160,6 +215,7 @@ export async function deleteCartItem(userId, productId) {
     throw new Error(`Cart Error: ${error.message}`);
   }
 }
+
 
 export async function clearCart(userId) {
   const { error } = await supabase

@@ -1,25 +1,33 @@
 import { supabase } from '../lib/supabase';
 
 export async function createOrder(userId, orderData) {
-  const { data, error } = await supabase
-    .from('orders')
-    .insert({
-      user_id: userId,
-      full_name: orderData.fullName,
-      email: orderData.email,
-      phone: orderData.phone,
-      address: orderData.address,
-      city: orderData.city,
-      state: orderData.state,
-      zip_code: orderData.zipCode,
-      subtotal: orderData.subtotal,
-      shipping: orderData.shipping,
-      tax: orderData.tax,
-      total: orderData.total,
-      payment_method: orderData.paymentMethod,
-    })
-    .select()
-    .single();
+  const items = orderData.items.map((item) => ({
+    product_id: item.id,
+    product_name: item.title,
+    unit_price: Number(item.price),
+    quantity: item.quantity,
+    subtotal: Number(item.price) * item.quantity,
+  }));
+
+  const { data, error } = await supabase.rpc(
+    'create_order_with_stock',
+    {
+      p_user_id: userId,
+      p_full_name: orderData.fullName,
+      p_email: orderData.email,
+      p_phone: orderData.phone,
+      p_address: orderData.address,
+      p_city: orderData.city,
+      p_state: orderData.state,
+      p_zip_code: orderData.zipCode,
+      p_subtotal: orderData.subtotal,
+      p_shipping: orderData.shipping,
+      p_tax: orderData.tax,
+      p_total: orderData.total,
+      p_payment_method: orderData.paymentMethod,
+      p_items: items,
+    }
+  );
 
   if (error) {
     throw new Error(`Order Error: ${error.message}`);

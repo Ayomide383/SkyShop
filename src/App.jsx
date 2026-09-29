@@ -107,51 +107,52 @@ function App() {
     return;
   }
 
-  const existingItem = cartItems.find(
-    item => item.id === product.id
-  );
-
   const oldCartItems = cartItems;
 
-  // Update UI immediately
-  setCartItems(currentItems => {
-    const existingItem = currentItems.find(
-      item => item.id === product.id
+  try {
+    // Save to Supabase first.
+    // addToCart() now checks the real stock.
+    await addToCart(
+      user.id,
+      product.id,
+      quantity
     );
 
-    if (existingItem) {
-      return currentItems.map(item =>
-        item.id === product.id
-          ? {
-              ...item,
-              quantity: item.quantity + quantity
-            }
-          : item
+    // Only update the UI after Supabase accepts it.
+    setCartItems(currentItems => {
+      const existingItem = currentItems.find(
+        item => item.id === product.id
       );
-    }
 
-    return [
-      ...currentItems,
-      {
-        ...product,
-        quantity
+      if (existingItem) {
+        return currentItems.map(item =>
+          item.id === product.id
+            ? {
+                ...item,
+                quantity: item.quantity + quantity
+              }
+            : item
+        );
       }
-    ];
-  });
 
-  try {
-    // Save to Supabase
-    for (let i = 0; i < quantity; i++) {
-      await addToCart(user.id, product.id);
-    }
+      return [
+        ...currentItems,
+        {
+          ...product,
+          quantity
+        }
+      ];
+    });
+
   } catch (error) {
-    // Restore previous cart if saving fails
+    // Keep the existing cart unchanged.
     setCartItems(oldCartItems);
+
+    console.error('Add to cart error:', error);
 
     alert(error.message);
   }
 };
-
   return (
     <>
 

@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   ArrowRight,
   Box,
+  LogOut,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -499,27 +500,40 @@ setAvatarLoading(false);
               <ArrowRight className="h-5 w-5 text-slate-400 transition group-hover:translate-x-1 group-hover:text-sky-600" />
             </Link>
           </div>
-          {user && (
-  <button
-    onClick={async () => {
-      const { error } = await logout();
+{user && (
+  <div className="mt-4 rounded-2xl border border-red-100 bg-white p-4 shadow-sm">
+    <button
+      type="button"
+      onClick={async () => {
+        const { error } = await logout();
 
-      if (error) {
-        console.error(error);
-      }
-    }}
-    className="text-sm text-red-500"
-  >
-    Logout
-  </button>
+        if (error) {
+          console.error(error);
+        }
+      }}
+      className="group flex w-full items-center justify-between rounded-xl border border-red-100 bg-red-50 px-4 py-3.5 text-left transition hover:border-red-200 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-600 transition group-hover:bg-red-200">
+          <LogOut className="h-5 w-5" />
+        </div>
+
+        <div>
+          <p className="text-sm font-bold text-red-700">
+            Log out
+          </p>
+
+          <p className="mt-0.5 text-xs text-red-500">
+            Sign out of your SkyShop account
+          </p>
+        </div>
+      </div>
+
+      <ArrowRight className="h-4 w-4 text-red-400 transition group-hover:translate-x-1 group-hover:text-red-600" />
+    </button>
+  </div>
 )}
         </section>
-
-        {/*}    {/* SMALL FOOTNOTE 
-        <p className="mt-6 text-center text-xs leading-relaxed text-slate-400">
-          Your profile details are currently stored in React state and will
-          reset when the page reloads. Account storage can be added later.
-        </p> */}
 
       </div>
     </main>

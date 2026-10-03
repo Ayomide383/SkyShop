@@ -17,7 +17,6 @@ export default function Header({
   const navLinks = [
   { name: 'Home', path: '/' },
   { name: 'Shop', path: '/shop' },
-  { name: 'Categories', path: '/categories' },
   { name: 'Deals', path: '/deals' },
   { name: 'Cart', path: '/cart' },
   { name: 'About Us', path: '/about' },

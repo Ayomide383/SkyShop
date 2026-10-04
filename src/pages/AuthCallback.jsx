@@ -7,29 +7,53 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      try {
+        // Give Supabase a moment to process the OAuth
+        // tokens from the URL hash.
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
-      if (error || !session?.user) {
+        if (error) {
+          console.error('Auth callback error:', error);
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        if (!session?.user) {
+          console.error('No user session found.');
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        const {
+          data: isAdmin,
+          error: adminError,
+        } = await supabase.rpc('is_admin');
+
+        if (adminError) {
+          console.error(
+            'Admin check error:',
+            adminError
+          );
+
+          navigate('/', { replace: true });
+          return;
+        }
+
+        if (isAdmin === true) {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      } catch (error) {
+        console.error(
+          'Authentication callback error:',
+          error
+        );
+
         navigate('/login', { replace: true });
-        return;
-      }
-
-      const { data: isAdmin, error: adminError } =
-        await supabase.rpc('is_admin');
-
-      if (adminError) {
-        console.error('Admin check error:', adminError);
-        navigate('/', { replace: true });
-        return;
-      }
-
-      if (isAdmin) {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/', { replace: true });
       }
     };
 

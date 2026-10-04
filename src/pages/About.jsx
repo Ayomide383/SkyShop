@@ -22,7 +22,7 @@ export default function About() {
 
             <div className="inline-flex items-center gap-2 bg-white border border-sky-100 shadow-sm rounded-full px-4 py-2 text-sm font-semibold text-blue-600 mb-6">
               <Sparkles className="w-4 h-4" />
-              Welcome to NewLogo
+              Welcome to SkyShop
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900">
@@ -31,7 +31,7 @@ export default function About() {
             </h1>
 
             <p className="mt-6 text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl">
-              NewLogo is built around a simple idea: make discovering
+              SkyShop is built around a simple idea: make discovering
               great products easy, enjoyable, and straightforward.
             </p>
 
@@ -129,7 +129,7 @@ export default function About() {
           <div className="text-center max-w-2xl mx-auto mb-10">
 
             <p className="text-sm font-bold text-blue-600 uppercase tracking-wider">
-              Why NewLogo
+              Why SkyShop
             </p>
 
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mt-2">

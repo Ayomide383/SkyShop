@@ -99,7 +99,7 @@ export default function ProductPage({ onAddToCart }) {
 
           
           <div className="lg:col-span-4">
-            <CustomerReviews />
+            <CustomerReviews productId={product.id} />
           </div>
         </div>
       </main>

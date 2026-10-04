@@ -123,22 +123,17 @@ export async function getAllOrders() {
       payment_method,
       payment_status,
       order_status,
-      created_at,
-      order_items (
-        id,
-        product_id,
-        product_name,
-        price,
-        quantity
-      )
+      created_at
     `)
     .order('created_at', { ascending: false });
 
   if (error) {
-    throw new Error(`Admin Orders Error: ${error.message}`);
+    throw new Error(
+      `Admin Orders Error: ${error.message}`
+    );
   }
 
-  return data;
+  return data || [];
 }
 
 export async function getCategories() {
@@ -507,4 +502,115 @@ export async function removeCustomerAdmin(userId) {
       `Remove Admin Error: ${error.message}`
     );
   }
+}
+
+export async function getAllReviews() {
+  const { data: reviews, error: reviewError } = await supabase
+    .from('reviews')
+    .select(`
+      id,
+      product_id,
+      user_id,
+      rating,
+      comment,
+      created_at
+    `)
+    .order('created_at', { ascending: false });
+
+  if (reviewError) {
+    throw new Error(
+      `Admin Reviews Error: ${reviewError.message}`
+    );
+  }
+
+  if (!reviews || reviews.length === 0) {
+    return [];
+  }
+
+  // Get product IDs
+  const productIds = [
+    ...new Set(
+      reviews.map((review) => review.product_id)
+    ),
+  ];
+
+  // Get user IDs
+  const userIds = [
+    ...new Set(
+      reviews.map((review) => review.user_id)
+    ),
+  ];
+
+  // Get products
+  const { data: products, error: productError } =
+    await supabase
+      .from('products')
+      .select('id, name')
+      .in('id', productIds);
+
+  if (productError) {
+    throw new Error(
+      `Admin Review Products Error: ${productError.message}`
+    );
+  }
+
+  // Get customer profiles
+  const { data: profiles, error: profileError } =
+    await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', userIds);
+
+  if (profileError) {
+    throw new Error(
+      `Admin Review Profiles Error: ${profileError.message}`
+    );
+  }
+
+  // Combine everything
+  return reviews.map((review) => ({
+    ...review,
+
+    product:
+      products?.find(
+        (product) =>
+          product.id === review.product_id
+      ) || null,
+
+    profile:
+      profiles?.find(
+        (profile) =>
+          profile.id === review.user_id
+      ) || null,
+  }));
+}
+
+
+export async function deleteReview(reviewId) {
+  const { error } = await supabase.rpc(
+    'admin_delete_review',
+    {
+      p_review_id: reviewId,
+    }
+  );
+
+  if (error) {
+    throw new Error(
+      `Delete Review Error: ${error.message}`
+    );
+  }
+}
+
+export async function getAdminDashboardStats() {
+  const { data, error } = await supabase.rpc(
+    'get_admin_dashboard_stats'
+  );
+
+  if (error) {
+    throw new Error(
+      `Dashboard Stats Error: ${error.message}`
+    );
+  }
+
+  return data;
 }

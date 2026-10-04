@@ -30,6 +30,8 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AdminEditProduct from './pages/AdminEditProduct.jsx';
 import AdminCustomers from './pages/AdminCustomers';
 import AuthCallback from './pages/AuthCallback.jsx';
+import AdminReviews from './pages/AdminReviews.jsx';
+import AdminOrderDetails from './pages/AdminOrderDetails';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
@@ -230,7 +232,9 @@ function App() {
     <Route path="/admin/customers" element={<AdminCustomers />} />
     <Route path="/admin/products" element={<AdminProducts />} />
     <Route path="/admin/products/add" element={<AdminAddProduct />} />
+    <Route path="/admin/orders/:id" element={<AdminOrderDetails />} />
     <Route path="/admin/products/edit/:id" element={<AdminEditProduct />} />
+    <Route path="/admin/reviews" element={<AdminReviews />} />
   </Route>
 </Route>
 

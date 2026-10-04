@@ -18,9 +18,9 @@ export default function ShopPage({ onAddToCart, searchQuery }) {
               <p className="text-slate-600">Discover our amazing collection of products at the best prices.</p>
             </div>
             <div className="hidden md:flex items-center space-x-4 pr-12">
-              <div className="w-28 h-28 bg-blue-500 rounded-lg shadow-md flex items-center justify-center text-white text-xs">
+              {/*} <div className="w-28 h-28 bg-blue-500 rounded-lg shadow-md flex items-center justify-center text-white text-xs">
                 [ Shopping Bag Graphic ]
-              </div>
+              </div> */}
             </div>
           </div>
         </section>    
@@ -35,9 +35,9 @@ export default function ShopPage({ onAddToCart, searchQuery }) {
   onAddToCart={onAddToCart}
   searchQuery={searchQuery}
 />
-              <div className="mt-8">
+              {/*} <div className="mt-8">
                 <Pagination />
-              </div>
+              </div> */}
             </main>
           </div>
         </div>

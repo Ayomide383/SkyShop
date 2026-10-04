@@ -7,6 +7,7 @@ import {
   Menu,
   X,
   UsersRound,
+  MessageSquare,
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -114,6 +115,22 @@ export default function AdminLayout() {
           >
             <UsersRound size={19} />
             Customers
+          </NavLink>
+
+
+          <NavLink
+            to="/admin/reviews"
+            onClick={() => setMobileMenuOpen(false)}
+             className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition ${
+                isActive
+                ? 'bg-sky-500 text-white'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`
+            }
+          >
+            <MessageSquare size={18} />
+            Reviews
           </NavLink>
 
         </nav>

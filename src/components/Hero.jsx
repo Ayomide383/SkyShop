@@ -46,11 +46,11 @@ const Hero = () => {
           </h1>
 
   
-          <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
+          <h1 className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
             Quality Products, Best Price.
             <br />
             Fast Delivery, Shop now!
-          </p>
+          </h1>
 
           {/* Buttons */}
           <div className="mt-7 flex flex-wrap gap-4">

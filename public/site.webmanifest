@@ -1,0 +1,16 @@
+{
+  "name": "SkyShop",
+  "short_name": "SkyShop",
+  "description": "Shop quality products at great prices with fast and reliable delivery.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0ea5e9",
+  "background_color": "#f0f9ff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

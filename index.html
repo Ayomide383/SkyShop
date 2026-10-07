@@ -19,6 +19,7 @@
     <meta name="theme-color" content="#0ea5e9" />
 
     <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-        32x32.png" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -57,7 +58,9 @@
       content="en_US"
     />
 
-    <!-- Add og:image when the image is created -->
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!--  og:image -->
     <meta
       property="og:image"
       content="https://sky-shop-two.vercel.app/og-image.png"
@@ -98,6 +101,16 @@
       name="twitter:image"
       content="https://sky-shop-two.vercel.app/og-image.png"
     />
+
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "SkyShop",
+  "url": "https://sky-shop-two.vercel.app/",
+  "description": "Shop quality products at great prices with fast and reliable delivery."
+}
+    </script>
   </head>
 
   <body>

@@ -13,7 +13,7 @@ const Home = ( {onAddToCart} ) => {
   <Hero />
      <div className="px-4 sm:px-8 lg:px-12 space-x-4">
   
-         <h2 className="text-xl font-medium">Popular Products </h2> 
+         <h1 className="text-xl font-medium">Popular Products </h1> 
                   <ProductCardH onAddToCart={onAddToCart}/>
             
          </div>
